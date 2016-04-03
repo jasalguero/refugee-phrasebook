@@ -1,0 +1,7 @@
+{
+  "name": "refugee-phrasebook",
+  "private": true,
+  "dependencies": {
+    "modernizr": "~2.8.1"
+  }
+}
