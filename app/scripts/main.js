@@ -1,37 +1,47 @@
-var RPB = ((APP) => {
+// Self executable function that will initialize the app
+((RPB) => {
+
+  // Here will be the HTML structured from index.html so it can be inserted
+  const SettingsMenuHtml = ``;
 
   const CONSTANTS = {
+    // Target spreadsheets
     SPREADSHEETS: {
       GENERAL: "https://docs.google.com/spreadsheets/d/1hVa7vtHCc7WGkf0idxU0j5YWX0eX0jzavMR5GncG-nU/edit#gid=0",
       MEDICAL: "https://docs.google.com/spreadsheets/d/1wjmRrkN9WVB4KIeKBy8wDDJ8E51Mh2-JxIBy2KNMFRQ/edit#gid=0",
       JURIDICAL: "https://docs.google.com/spreadsheets/d/1D7jo-tAyQkmfYvVyT27nZ93ZkyFcZg2vEvf4OMbXJ_c/edit#gid=0"
     },
+    // List of available languages for the queries
     LANGUAGES: {}
   };
 
+  // Variable that will hold the HTML elems the app will build and use during the lifecycle
   let ELEMS = {
     TABLE: null
   };
 
+  // Default configuration
   const DEFAULTS = {
     target: CONSTANTS.SPREADSHEETS.GENERAL,
     languages: ['C', 'D', 'E', 'F'],
-    container: 'rpb-container'
+    containerClass: 'rpb-wrapper'
   };
 
   let config = {};
 
-  var APP = APP || {};
-
-  let API = {};
-
-  APP.getAvailableLanguages = () => {
-    var query = new google.visualization.Query(CONSTANTS.SPREADSHEETS.GENERAL);
-    query.setQuery('select * LIMIT 1 OFFSET 1');
-    query.send(APP.processAvailableLanguages);
+  var APP = {
+    UI: {},
+    API: {},
+    ACTIONS: {}
   };
 
-  APP.processAvailableLanguages = (response) => {
+  APP.API.getAvailableLanguages = () => {
+    var query = new google.visualization.Query(CONSTANTS.SPREADSHEETS.GENERAL);
+    query.setQuery('select * LIMIT 1 OFFSET 1');
+    query.send(APP.API.processAvailableLanguages);
+  };
+
+  APP.API.processAvailableLanguages = (response) => {
     if (response.isError()) {
       console.error('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
     } else {
@@ -41,25 +51,22 @@ var RPB = ((APP) => {
       for (let i = 2; i < dataTable.getNumberOfColumns(); i++) {
         CONSTANTS.LANGUAGES[dataTable.getColumnId(i)] = {id: dataTable.getColumnId(i), label: dataTable.getValue(0, i)};
       }
-      // APP.createLanguageForm(dataTable);
-      // APP.querySpreadsheet(config);
     }
+
+    APP.UI.createLanguageForm('languages-container', CONSTANTS.LANGUAGES);
   };
 
-  APP.createLanguageForm = (dataTable) => {
-    // remove loading status
-    let elem = document.getElementById('langLoading');
-    elem.parentNode.removeChild(elem);
+  APP.UI.createLanguageForm = (container, languages) => {
+    let langForm = document.getElementsByClassName(container)[0];
+    let langIds = Object.keys(languages);
+    for (let i = 2; i < langIds.length; i++) {
+      let langLabel = languages[langIds[i]].label;
+      let langId = languages[langIds[i]].id;
 
-    let langForm = document.getElementById('langForm');
-
-    for (let i = 2; i < dataTable.getNumberOfColumns(); i++) {
-      let langLabel = dataTable.getValue(0, i);
-      let langId = dataTable.getColumnId(i);
-
-      let wrapper = document.createElement("div");
-      let input = document.createElement("input");
-      let label = document.createElement("span");
+      let wrapper = document.createElement('div');
+      wrapper.classList.add('language-item');
+      let input = document.createElement('input');
+      let label = document.createElement('span');
 
       input.type = "checkbox";
       input.value = langId;
@@ -69,43 +76,22 @@ var RPB = ((APP) => {
       wrapper.appendChild(label);
       langForm.appendChild(wrapper);
     }
-
-    let updateButton = document.createElement("input");
-    updateButton.onclick = APP.updateQuery;
-    updateButton.type = "button";
-    updateButton.value = "Update Table";
-    updateButton.innerHTML = "Update Table";
-    langForm.appendChild(updateButton);
   };
 
-  APP.updateQuery = () => {
+  APP.API.querySpreadsheet = (conf) => {
+    let queryObject = new google.visualization.Query(conf.target);
     let query = "SELECT B";
-    let selectedLanguages = document.getElementById("langForm").querySelectorAll('input[type="checkbox"]:checked');
-    for (let i = 0; i < selectedLanguages.length; i++) {
-      query += ", " + selectedLanguages[i].value;
-    }
-
-    query += " OFFSET 4";
-
-    var theQuery = new google.visualization.Query(CONSTANTS.SPREADSHEETS.GENERAL);
-    theQuery.setQuery(query);
-    theQuery.send(APP.handleQueryResponse);
-  };
-
-  APP.querySpreadsheet = (config) => {
-    let queryObject = new google.visualization.Query(config.target);
-    let query = "SELECT B";
-    for (let i = 0; i < config.languages.length; i++) {
-      query += ", " + config.languages[i];
+    for (let i = 0; i < conf.languages.length; i++) {
+      query += ", " + conf.languages[i];
     }
 
     query += " OFFSET 4";
 
     queryObject.setQuery(query);
-    queryObject.send(APP.handleQueryResponse);
+    queryObject.send(APP.API.handleQueryResponse);
   };
 
-  APP.handleQueryResponse = (response) => {
+  APP.API.handleQueryResponse = (response) => {
     if (response.isError()) {
       console.error("Error in query: " + response.getMessage() + " " + response.getDetailedMessage());
     } else {
@@ -121,11 +107,11 @@ var RPB = ((APP) => {
 
       dataTable.setColumnLabel(0, "PHRASE");
 
-      APP.drawTable(new google.visualization.DataView(response.getDataTable()))
+      APP.UI.drawTable(new google.visualization.DataView(response.getDataTable()))
     }
   };
 
-  APP.drawTable = (dataView) => {
+  APP.UI.drawTable = (dataView) => {
     var table = new google.visualization.Table(ELEMS.TABLE);
     table.draw(dataView);
   };
@@ -133,39 +119,68 @@ var RPB = ((APP) => {
   /**
    * Create the DOM structure for the app
    */
-  APP.createDOM = (config) => {
-    ELEMS.CONTAINER = document.getElementsByClassName(config.container)[0];
+  APP.UI.createDOM = (conf) => {
+    ELEMS.CONTAINER = document.getElementsByClassName(conf.containerClass)[0];
 
-    APP.createSettingsButton();
-    APP.createSettings();
-    APP.createTableElems();
+    APP.UI.createSettings();
+    APP.UI.createTableElems();
   };
 
-  APP.createSettings = () => {
-    ELEMS.SETTINGS = document.createElement("div");
-    ELEMS.SETTINGS.classList.add("rpb-settings-container");
-    ELEMS.CONTAINER.appendChild(ELEMS.SETTINGS);
+  APP.UI.createSettings = () => {
+    // APP.UI.createLanguageForm('languages-container', CONSTANTS.LANGUAGES);
+    // ELEMS.SETTINGS = document.createElement('div');
+    // ELEMS.SETTINGS.classList.add('rpb-settings-container');
+    // ELEMS.CONTAINER.appendChild(ELEMS.SETTINGS);
+    // APP.UI.createSettingsMenu();
   };
 
-  APP.createSettingsButton = () => {
-    let settingsButton = document.createElement("input");
-    settingsButton.onclick = APP.showSettings;
-    settingsButton.type = "button";
-    settingsButton.value = "Settings";
-    settingsButton.classList.add("btn");
-    settingsButton.classList.add("rpb-settings-btn");
-    ELEMS.CONTAINER.appendChild(settingsButton);
+  APP.UI.createSettingsMenu = () => {
+    ELEMS.SETTINGS.innerHTML = SettingsMenuHtml;
   };
 
-  APP.showSettings = () => {
-    ELEMS.TABLE.classList.toggle("hidden");
-    ELEMS.SETTINGS.classList.toggle("hidden");
+  APP.ACTIONS.showSettingsMenu = () => {
+    // ELEMS.TABLE.classList.toggle('hidden');
+    document.getElementsByClassName('rpb-settings-menu')[0].classList.remove('hidden');
+    document.getElementsByClassName('rpb-main-controls')[0].classList.add('hidden');
+    document.getElementsByClassName('rpb-language-settings')[0].classList.add('hidden');
+    document.getElementsByClassName('rpb-document-settings')[0].classList.add('hidden');
   };
 
-  APP.createTableElems = () => {
-    ELEMS.TABLE = document.createElement("div");
-    ELEMS.TABLE.classList.add("rpb-table");
+  APP.ACTIONS.hideSettingsMenu = () => {
+    // ELEMS.TABLE.classList.toggle('hidden');
+    document.getElementsByClassName('rpb-settings-menu')[0].classList.add('hidden');
+    document.getElementsByClassName('rpb-main-controls')[0].classList.remove('hidden');
+  };
+
+  APP.ACTIONS.showLanguageMenu = () => {
+    document.getElementsByClassName('rpb-settings-menu')[0].classList.add('hidden');
+    document.getElementsByClassName('rpb-language-settings')[0].classList.remove('hidden');
+  };
+
+  APP.ACTIONS.hideLanguageMenu = () => {
+    document.getElementsByClassName('rpb-settings-menu')[0].classList.remove('hidden');
+    document.getElementsByClassName('rpb-language-settings')[0].classList.add('hidden');
+  };
+
+  APP.ACTIONS.toggleDocumentMenu = () => {
+    // ELEMS.TABLE.classList.toggle('hidden');
+    document.getElementsByClassName('rpb-settings-menu')[0].classList.toggle('hidden');
+    document.getElementsByClassName('rpb-document-settings')[0].classList.toggle('hidden');
+  };
+
+  APP.UI.createTableElems = () => {
+    ELEMS.TABLE = document.createElement('div');
+    ELEMS.TABLE.classList.add('rpb-table');
     ELEMS.CONTAINER.appendChild(ELEMS.TABLE);
+  };
+
+  APP.UI.createBindings = () => {
+    document.getElementsByClassName('rpb-settings-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
+    document.getElementsByClassName('rpb-setting-back-btn')[0].onclick = APP.ACTIONS.hideSettingsMenu;
+    document.getElementsByClassName('rpb-languages-btn')[0].onclick = APP.ACTIONS.showLanguageMenu;
+    document.getElementsByClassName('rpb-languages-back-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
+    document.getElementsByClassName('rpb-documents-btn')[0].onclick = APP.ACTIONS.toggleDocumentMenu;
+    document.getElementsByClassName('rpb-documents-back-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
   };
 
   /**
@@ -173,14 +188,21 @@ var RPB = ((APP) => {
    */
   APP.initialize = () => {
     // get provided defaults or the general defaults
-    APP.config = APP.CONFIG || DEFAULTS;
-
-    APP.createDOM(APP.config);
-    APP.getAvailableLanguages();
-    APP.querySpreadsheet(APP.config);
+    config = DEFAULTS;
+    for (let property in RPB) {
+      if (RPB.hasOwnProperty(property)) {
+        config[property] = RPB[property];
+      }
+    }
+    APP.UI.createDOM(config);
+    APP.UI.createBindings();
+    APP.API.getAvailableLanguages();
+    APP.API.querySpreadsheet(config);
   };
 
   window.onload = () => {
+    APP.UI.createBindings();
+
     APP.initialize();
   };
 })(RPB || {});
