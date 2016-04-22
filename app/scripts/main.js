@@ -116,9 +116,6 @@
 
         dataTable.setColumnLabel(i, language);
       }
-
-      // dataTable.setColumnLabel(0, "ENGLISH");
-
       APP.UI.drawTable(new google.visualization.DataView(response.getDataTable()))
     }
   };
