@@ -149,6 +149,8 @@
   APP.ACTIONS.hideSettingsMenu = () => {
     // ELEMS.TABLE.classList.toggle('hidden');
     document.getElementsByClassName('rpb-settings-menu')[0].classList.add('hidden');
+    document.getElementsByClassName('rpb-language-settings')[0].classList.add('hidden');
+    document.getElementsByClassName('rpb-document-settings')[0].classList.add('hidden');
     document.getElementsByClassName('rpb-main-controls')[0].classList.remove('hidden');
   };
 
@@ -168,6 +170,17 @@
     document.getElementsByClassName('rpb-document-settings')[0].classList.toggle('hidden');
   };
 
+  APP.ACTIONS.applyLanguages = () => {
+    let selectedLanguages = document.getElementsByClassName("languages-container")[0].querySelectorAll('input[type="checkbox"]:checked');
+    let languages = Array.prototype.map.call(selectedLanguages, (input) => {
+      return input.value;
+    });
+
+    config.languages = languages;
+    APP.API.querySpreadsheet(config);
+    APP.ACTIONS.hideSettingsMenu();
+  };
+
   APP.UI.createTableElems = () => {
     ELEMS.TABLE = document.createElement('div');
     ELEMS.TABLE.classList.add('rpb-table');
@@ -178,6 +191,7 @@
     document.getElementsByClassName('rpb-settings-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
     document.getElementsByClassName('rpb-setting-back-btn')[0].onclick = APP.ACTIONS.hideSettingsMenu;
     document.getElementsByClassName('rpb-languages-btn')[0].onclick = APP.ACTIONS.showLanguageMenu;
+    document.getElementsByClassName('rpb-languages-apply-btn')[0].onclick = APP.ACTIONS.applyLanguages;
     document.getElementsByClassName('rpb-languages-back-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
     document.getElementsByClassName('rpb-documents-btn')[0].onclick = APP.ACTIONS.toggleDocumentMenu;
     document.getElementsByClassName('rpb-documents-back-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
