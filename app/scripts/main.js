@@ -13,6 +13,15 @@
     },
     // List of available languages for the queries
     LANGUAGES: {}
+
+    // TODO: list of languages
+    /**
+     * LANGUAGES: {
+     *  GENERAL: {}
+     *  MEDICAL: {}
+     *  JURIDICAL: {}
+     * }
+     */
   };
 
   // Variable that will hold the HTML elems the app will build and use during the lifecycle
@@ -80,7 +89,8 @@
 
   APP.API.querySpreadsheet = (conf) => {
     let queryObject = new google.visualization.Query(conf.target);
-    let query = "SELECT B";
+    //select the english column for phrase names
+    let query = "SELECT I";
     for (let i = 0; i < conf.languages.length; i++) {
       query += ", " + conf.languages[i];
     }
@@ -101,11 +111,13 @@
       // set the column names
       for (let i = 0; i < dataTable.getNumberOfColumns(); i++) {
         let columnId = dataTable.getColumnId(i);
+
         let language = CONSTANTS.LANGUAGES[columnId] ? CONSTANTS.LANGUAGES[columnId].label : "";
+
         dataTable.setColumnLabel(i, language);
       }
 
-      dataTable.setColumnLabel(0, "PHRASE");
+      // dataTable.setColumnLabel(0, "ENGLISH");
 
       APP.UI.drawTable(new google.visualization.DataView(response.getDataTable()))
     }
@@ -210,6 +222,12 @@
     }
     APP.UI.createDOM(config);
     APP.UI.createBindings();
+
+
+
+
+
+
     APP.API.getAvailableLanguages();
     APP.API.querySpreadsheet(config);
   };
@@ -220,4 +238,3 @@
     APP.initialize();
   };
 })(RPB || {});
-
