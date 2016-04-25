@@ -7,9 +7,9 @@
   const CONSTANTS = {
     // Target spreadsheets
     SPREADSHEETS: {
-      GENERAL: "https://docs.google.com/spreadsheets/d/1hVa7vtHCc7WGkf0idxU0j5YWX0eX0jzavMR5GncG-nU/edit#gid=0",
-      MEDICAL: "https://docs.google.com/spreadsheets/d/1wjmRrkN9WVB4KIeKBy8wDDJ8E51Mh2-JxIBy2KNMFRQ/edit#gid=0",
-      JURIDICAL: "https://docs.google.com/spreadsheets/d/1D7jo-tAyQkmfYvVyT27nZ93ZkyFcZg2vEvf4OMbXJ_c/edit#gid=0"
+      GENERAL: 'https://docs.google.com/spreadsheets/d/1hVa7vtHCc7WGkf0idxU0j5YWX0eX0jzavMR5GncG-nU/edit#gid=0',
+      MEDICAL: 'https://docs.google.com/spreadsheets/d/1wjmRrkN9WVB4KIeKBy8wDDJ8E51Mh2-JxIBy2KNMFRQ/edit#gid=0',
+      JURIDICAL: 'https://docs.google.com/spreadsheets/d/1D7jo-tAyQkmfYvVyT27nZ93ZkyFcZg2vEvf4OMbXJ_c/edit#gid=0'
     },
     // List of available languages for the queries
     LANGUAGES: {}
@@ -77,7 +77,7 @@
       let input = document.createElement('input');
       let label = document.createElement('span');
 
-      input.type = "checkbox";
+      input.type = 'checkbox';
       input.value = langId;
       label.innerHTML = langLabel;
 
@@ -90,12 +90,12 @@
   APP.API.querySpreadsheet = (conf) => {
     let queryObject = new google.visualization.Query(conf.target);
     //select the english column for phrase names
-    let query = "SELECT I";
+    let query = 'SELECT I';
     for (let i = 0; i < conf.languages.length; i++) {
-      query += ", " + conf.languages[i];
+      query += ', ' + conf.languages[i];
     }
 
-    query += " OFFSET 4";
+    query += ' OFFSET 4';
 
     queryObject.setQuery(query);
     queryObject.send(APP.API.handleQueryResponse);
@@ -103,7 +103,7 @@
 
   APP.API.handleQueryResponse = (response) => {
     if (response.isError()) {
-      console.error("Error in query: " + response.getMessage() + " " + response.getDetailedMessage());
+      console.error('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
     } else {
 
       let dataTable = response.getDataTable();
@@ -112,7 +112,7 @@
       for (let i = 0; i < dataTable.getNumberOfColumns(); i++) {
         let columnId = dataTable.getColumnId(i);
 
-        let language = CONSTANTS.LANGUAGES[columnId] ? CONSTANTS.LANGUAGES[columnId].label : "";
+        let language = CONSTANTS.LANGUAGES[columnId] ? CONSTANTS.LANGUAGES[columnId].label : '';
 
         dataTable.setColumnLabel(i, language);
       }
@@ -180,7 +180,7 @@
   };
 
   APP.ACTIONS.applyLanguages = () => {
-    let selectedLanguages = document.getElementsByClassName("languages-container")[0].querySelectorAll('input[type="checkbox"]:checked');
+    let selectedLanguages = document.getElementsByClassName('languages-container')[0].querySelectorAll("input[type='checkbox']:checked");
     let languages = Array.prototype.map.call(selectedLanguages, (input) => {
       return input.value;
     });
@@ -219,12 +219,7 @@
     }
     APP.UI.createDOM(config);
     APP.UI.createBindings();
-
-
-
-
-
-
+    
     APP.API.getAvailableLanguages();
     APP.API.querySpreadsheet(config);
   };
