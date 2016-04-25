@@ -1,5 +1,5 @@
 // Self executable function that will initialize the app
-((RPB) => {
+(() => {
 
   // Here will be the HTML structured from index.html so it can be inserted
   const SettingsMenuHtml = ``;
@@ -212,6 +212,8 @@
   APP.initialize = () => {
     // get provided defaults or the general defaults
     config = DEFAULTS;
+
+    let RPB = window.RPB ? window.RPB : {};
     for (let property in RPB) {
       if (RPB.hasOwnProperty(property)) {
         config[property] = RPB[property];
@@ -219,14 +221,26 @@
     }
     APP.UI.createDOM(config);
     APP.UI.createBindings();
-    
+
     APP.API.getAvailableLanguages();
     APP.API.querySpreadsheet(config);
   };
 
   window.onload = () => {
-    APP.UI.createBindings();
-
-    APP.initialize();
+    // APP.UI.createBindings();
+    //
+    // APP.initialize();
   };
-})(RPB || {});
+
+  (function(d, script) {
+    script = d.createElement('script');
+    script.type = 'text/javascript';
+    script.async = true;
+    script.onload = () => {
+      // remote script has loaded
+      google.load('visualization', '1', {packages: ['corechart', 'table'], callback: APP.initialize});
+    };
+    script.src = 'http://www.google.com/jsapi';
+    d.getElementsByTagName('head')[0].appendChild(script);
+  }(document));
+})();
