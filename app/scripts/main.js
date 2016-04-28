@@ -12,10 +12,6 @@
       JURIDICAL: 'https://docs.google.com/spreadsheets/d/1D7jo-tAyQkmfYvVyT27nZ93ZkyFcZg2vEvf4OMbXJ_c/edit#gid=0'
     },
     // List of available languages for the queries
-    // LANGUAGES: {}
-
-    // TODO: list of languages
-
     LANGUAGES: {
       GENERAL: {},
       MEDICAL: {},
@@ -67,8 +63,11 @@
       var dataTable = response.getDataTable();
 
       // get all the values except the first two columns that don't hold language name
-      for (let i = 2; i < dataTable.getNumberOfColumns(); i++) {
-        CONSTANTS.LANGUAGES[document][dataTable.getColumnId(i)] = {id: dataTable.getColumnId(i), label: dataTable.getValue(0, i)};
+      for (let i = 0; i < dataTable.getNumberOfColumns(); i++) {
+        CONSTANTS.LANGUAGES[document][dataTable.getColumnId(i)] = {
+          id: dataTable.getColumnId(i),
+          label: dataTable.getValue(0, i)
+        };
       }
     }
 
@@ -79,23 +78,29 @@
 
   APP.UI.createLanguagesForm = (container, languages) => {
     let langForm = document.getElementsByClassName(container)[0];
+    langForm.innerHTML = "";
     let langIds = Object.keys(languages);
     for (let i = 2; i < langIds.length; i++) {
       let langLabel = languages[langIds[i]].label;
       let langId = languages[langIds[i]].id;
 
-      let wrapper = document.createElement('div');
-      wrapper.classList.add('language-item');
-      let input = document.createElement('input');
-      let label = document.createElement('span');
+      // if (langLabel !== 'English') {
+        let wrapper = document.createElement('div');
+        wrapper.classList.add('language-item');
+        let input = document.createElement('input');
+        let label = document.createElement('span');
 
-      input.type = 'checkbox';
-      input.value = langId;
-      label.innerHTML = langLabel;
+        input.type = 'checkbox';
+        input.value = langId;
+        if (config.languages.indexOf(langId) !== -1) {
+          input.checked = true;
+        }
+        label.innerHTML = langLabel;
 
-      wrapper.appendChild(input);
-      wrapper.appendChild(label);
-      langForm.appendChild(wrapper);
+        wrapper.appendChild(input);
+        wrapper.appendChild(label);
+        langForm.appendChild(wrapper);
+      // }
     }
   };
 
@@ -103,8 +108,7 @@
     let docForm = document.getElementsByClassName(container)[0];
     let documents = Object.keys(CONSTANTS.SPREADSHEETS);
     for (let i = 0; i < documents.length; i++) {
-      let langLabel = documents[i];
-      let langId = documents[i];
+      let docLabel = documents[i];
 
       let wrapper = document.createElement('div');
       wrapper.classList.add('document-item');
@@ -113,8 +117,11 @@
 
       input.type = 'radio';
       input.name = 'document';
-      input.value = langId;
-      label.innerHTML = langLabel;
+      if (docLabel === config.target) {
+        input.checked = true;
+      }
+      input.value = docLabel;
+      label.innerHTML = docLabel;
 
       wrapper.appendChild(input);
       wrapper.appendChild(label);
@@ -131,6 +138,8 @@
     }
 
     query += ' OFFSET 4';
+
+    console.debug('Query', conf.target, query);
 
     queryObject.setQuery(query);
     queryObject.send(APP.API.handleQueryResponse);
@@ -222,12 +231,11 @@
   };
 
   APP.ACTIONS.applyDocument = () => {
-    let selectedLanguages = document.getElementsByClassName('documents-container')[0].querySelectorAll("input[type='radio']").value;
-    debugger;
+    config.target = document.getElementsByClassName('documents-container')[0].querySelectorAll("input[type='radio']:checked")[0].value
     APP.API.querySpreadsheet(config);
+    APP.UI.createLanguagesForm('languages-container', CONSTANTS.LANGUAGES[config.target]);
     APP.ACTIONS.hideSettingsMenu();
   };
-
 
 
   // APP.UI.createTableElems = () => {

@@ -59,7 +59,7 @@ body {
     border-bottom: 2px solid black;
   }
 
-  .languages-container, .documents-container {
+  .container {
     display: flex;
     flex-wrap: wrap;
     list-style: none;
@@ -69,13 +69,28 @@ body {
     font-weight: 300;
     font-size: 12px;
     margin-bottom: 5px;
+  }
 
-    .document-item {
-      width: 100%;
-    }
+  .documents-container {
+    flex-flow: column;
+  }
+
+  .languages-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-transform: uppercase;
+    font-weight: 300;
+    font-size: 12px;
+    margin-bottom: 5px;
+
+
 
     .language-item {
-      width: 30%;
+      flex: 0 30%;
     }
   }
 
