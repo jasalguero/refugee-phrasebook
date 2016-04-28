@@ -14,19 +14,94 @@ body {
   padding: 0.2em 0;
 }
 
+.rpb-container {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
-.hidden {
-  display: none;
-}
+  input {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
 
-.languages-container {
-  display: flex;
-  flex-wrap: wrap;
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  // COMMON ELEMS
+  .hidden {
+    display: none;
+  }
 
-  .language-item {
-    width: 30%;
+  .btn {
+    display: inline-block;
+    height: 25px;
+    padding: 0 16px;
+    color: #555;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 24px;
+    letter-spacing: .1rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+    border-radius: 4px;
+    border: 1px solid #bbb;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    &:hover {
+      color: #333;
+      border-color: #888;
+      outline: 0;
+    }
+  }
+
+  .section-title {
+    font-size: 22px;
+    margin: 10px;
+    width: 90%;
+    border-bottom: 2px solid black;
+  }
+
+  .languages-container, .documents-container {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-transform: uppercase;
+    font-weight: 300;
+    font-size: 12px;
+    margin-bottom: 5px;
+
+    .document-item {
+      width: 100%;
+    }
+
+    .language-item {
+      width: 30%;
+    }
+  }
+
+
+  // PHRASES TABLE
+  .rpb-table {
+    margin-top: 15px;
+  }
+
+  tr.google-visualization-table-tr-over {
+    background-color: rgba(190, 190, 190, 0.45);
+  }
+
+  th.google-visualization-table-th {
+    height: 25px;
+    padding: 0 16px;
+    color: #555;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 24px;
+    letter-spacing: .1rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    box-sizing: border-box;
+    background-color: #EAEAEA;
   }
 }

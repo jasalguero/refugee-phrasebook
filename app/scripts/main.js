@@ -12,26 +12,27 @@
       JURIDICAL: 'https://docs.google.com/spreadsheets/d/1D7jo-tAyQkmfYvVyT27nZ93ZkyFcZg2vEvf4OMbXJ_c/edit#gid=0'
     },
     // List of available languages for the queries
-    LANGUAGES: {}
+    // LANGUAGES: {}
 
     // TODO: list of languages
-    /**
-     * LANGUAGES: {
-     *  GENERAL: {}
-     *  MEDICAL: {}
-     *  JURIDICAL: {}
-     * }
-     */
+
+    LANGUAGES: {
+      GENERAL: {},
+      MEDICAL: {},
+      JURIDICAL: {}
+    }
+
   };
 
-  // Variable that will hold the HTML elems the app will build and use during the lifecycle
-  let ELEMS = {
+  // Variables that will hold the HTML elems the app will build and use during the lifecycle
+  const ELEMS = {
+    CONTAINER: null,
     TABLE: null
   };
 
   // Default configuration
   const DEFAULTS = {
-    target: CONSTANTS.SPREADSHEETS.GENERAL,
+    target: 'GENERAL',
     languages: ['C', 'D', 'E', 'F'],
     containerClass: 'rpb-wrapper'
   };
@@ -45,12 +46,21 @@
   };
 
   APP.API.getAvailableLanguages = () => {
-    var query = new google.visualization.Query(CONSTANTS.SPREADSHEETS.GENERAL);
-    query.setQuery('select * LIMIT 1 OFFSET 1');
-    query.send(APP.API.processAvailableLanguages);
+
+    var documents = Object.keys(CONSTANTS.LANGUAGES);
+
+    documents.forEach((document) => {
+      var query = new google.visualization.Query(CONSTANTS.SPREADSHEETS[document]);
+      query.setQuery('select * LIMIT 1 OFFSET 1');
+      query.send((response) => {
+        APP.API.processAvailableLanguages(response, document);
+      });
+    });
+
+
   };
 
-  APP.API.processAvailableLanguages = (response) => {
+  APP.API.processAvailableLanguages = (response, document) => {
     if (response.isError()) {
       console.error('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
     } else {
@@ -58,14 +68,16 @@
 
       // get all the values except the first two columns that don't hold language name
       for (let i = 2; i < dataTable.getNumberOfColumns(); i++) {
-        CONSTANTS.LANGUAGES[dataTable.getColumnId(i)] = {id: dataTable.getColumnId(i), label: dataTable.getValue(0, i)};
+        CONSTANTS.LANGUAGES[document][dataTable.getColumnId(i)] = {id: dataTable.getColumnId(i), label: dataTable.getValue(0, i)};
       }
     }
 
-    APP.UI.createLanguageForm('languages-container', CONSTANTS.LANGUAGES);
+    if (document === config.target) {
+      APP.UI.createLanguagesForm('languages-container', CONSTANTS.LANGUAGES[document]);
+    }
   };
 
-  APP.UI.createLanguageForm = (container, languages) => {
+  APP.UI.createLanguagesForm = (container, languages) => {
     let langForm = document.getElementsByClassName(container)[0];
     let langIds = Object.keys(languages);
     for (let i = 2; i < langIds.length; i++) {
@@ -87,8 +99,31 @@
     }
   };
 
+  APP.UI.createDocumentsForm = (container) => {
+    let docForm = document.getElementsByClassName(container)[0];
+    let documents = Object.keys(CONSTANTS.SPREADSHEETS);
+    for (let i = 0; i < documents.length; i++) {
+      let langLabel = documents[i];
+      let langId = documents[i];
+
+      let wrapper = document.createElement('div');
+      wrapper.classList.add('document-item');
+      let input = document.createElement('input');
+      let label = document.createElement('span');
+
+      input.type = 'radio';
+      input.name = 'document';
+      input.value = langId;
+      label.innerHTML = langLabel;
+
+      wrapper.appendChild(input);
+      wrapper.appendChild(label);
+      docForm.appendChild(wrapper);
+    }
+  };
+
   APP.API.querySpreadsheet = (conf) => {
-    let queryObject = new google.visualization.Query(conf.target);
+    let queryObject = new google.visualization.Query(CONSTANTS.SPREADSHEETS[conf.target]);
     //select the english column for phrase names
     let query = 'SELECT I';
     for (let i = 0; i < conf.languages.length; i++) {
@@ -112,7 +147,7 @@
       for (let i = 0; i < dataTable.getNumberOfColumns(); i++) {
         let columnId = dataTable.getColumnId(i);
 
-        let language = CONSTANTS.LANGUAGES[columnId] ? CONSTANTS.LANGUAGES[columnId].label : '';
+        let language = CONSTANTS.LANGUAGES[config.target][columnId] ? CONSTANTS.LANGUAGES[config.target][columnId].label : '';
 
         dataTable.setColumnLabel(i, language);
       }
@@ -130,13 +165,14 @@
    */
   APP.UI.createDOM = (conf) => {
     ELEMS.CONTAINER = document.getElementsByClassName(conf.containerClass)[0];
+    ELEMS.TABLE = document.getElementsByClassName('rpb-table')[0];
 
     APP.UI.createSettings();
-    APP.UI.createTableElems();
+    // APP.UI.createTableElems();
   };
 
   APP.UI.createSettings = () => {
-    // APP.UI.createLanguageForm('languages-container', CONSTANTS.LANGUAGES);
+    // APP.UI.createLanguagesForm('languages-container', CONSTANTS.LANGUAGES);
     // ELEMS.SETTINGS = document.createElement('div');
     // ELEMS.SETTINGS.classList.add('rpb-settings-container');
     // ELEMS.CONTAINER.appendChild(ELEMS.SETTINGS);
@@ -148,7 +184,6 @@
   };
 
   APP.ACTIONS.showSettingsMenu = () => {
-    // ELEMS.TABLE.classList.toggle('hidden');
     document.getElementsByClassName('rpb-settings-menu')[0].classList.remove('hidden');
     document.getElementsByClassName('rpb-main-controls')[0].classList.add('hidden');
     document.getElementsByClassName('rpb-language-settings')[0].classList.add('hidden');
@@ -156,16 +191,14 @@
   };
 
   APP.ACTIONS.hideSettingsMenu = () => {
-    // ELEMS.TABLE.classList.toggle('hidden');
     document.getElementsByClassName('rpb-settings-menu')[0].classList.add('hidden');
     document.getElementsByClassName('rpb-language-settings')[0].classList.add('hidden');
     document.getElementsByClassName('rpb-document-settings')[0].classList.add('hidden');
     document.getElementsByClassName('rpb-main-controls')[0].classList.remove('hidden');
   };
 
-  APP.ACTIONS.showLanguageMenu = () => {
-    document.getElementsByClassName('rpb-settings-menu')[0].classList.add('hidden');
-    document.getElementsByClassName('rpb-language-settings')[0].classList.remove('hidden');
+  APP.ACTIONS.toggleLanguagesMenu = () => {
+    document.getElementsByClassName('rpb-language-settings')[0].classList.toggle('hidden');
   };
 
   APP.ACTIONS.hideLanguageMenu = () => {
@@ -174,35 +207,43 @@
   };
 
   APP.ACTIONS.toggleDocumentMenu = () => {
-    // ELEMS.TABLE.classList.toggle('hidden');
     document.getElementsByClassName('rpb-settings-menu')[0].classList.toggle('hidden');
     document.getElementsByClassName('rpb-document-settings')[0].classList.toggle('hidden');
   };
 
   APP.ACTIONS.applyLanguages = () => {
     let selectedLanguages = document.getElementsByClassName('languages-container')[0].querySelectorAll("input[type='checkbox']:checked");
-    let languages = Array.prototype.map.call(selectedLanguages, (input) => {
+    config.languages = Array.prototype.map.call(selectedLanguages, (input) => {
       return input.value;
     });
 
-    config.languages = languages;
     APP.API.querySpreadsheet(config);
     APP.ACTIONS.hideSettingsMenu();
   };
 
-  APP.UI.createTableElems = () => {
-    ELEMS.TABLE = document.createElement('div');
-    ELEMS.TABLE.classList.add('rpb-table');
-    ELEMS.CONTAINER.appendChild(ELEMS.TABLE);
+  APP.ACTIONS.applyDocument = () => {
+    let selectedLanguages = document.getElementsByClassName('documents-container')[0].querySelectorAll("input[type='radio']").value;
+    debugger;
+    APP.API.querySpreadsheet(config);
+    APP.ACTIONS.hideSettingsMenu();
   };
+
+
+
+  // APP.UI.createTableElems = () => {
+  //   ELEMS.TABLE = document.createElement('div');
+  //   ELEMS.TABLE.classList.add('rpb-table');
+  //   ELEMS.CONTAINER.appendChild(ELEMS.TABLE);
+  // };
 
   APP.UI.createBindings = () => {
     document.getElementsByClassName('rpb-settings-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
     document.getElementsByClassName('rpb-setting-back-btn')[0].onclick = APP.ACTIONS.hideSettingsMenu;
-    document.getElementsByClassName('rpb-languages-btn')[0].onclick = APP.ACTIONS.showLanguageMenu;
+    document.getElementsByClassName('rpb-languages-btn')[0].onclick = APP.ACTIONS.toggleLanguagesMenu;
     document.getElementsByClassName('rpb-languages-apply-btn')[0].onclick = APP.ACTIONS.applyLanguages;
-    document.getElementsByClassName('rpb-languages-back-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
+    document.getElementsByClassName('rpb-languages-back-btn')[0].onclick = APP.ACTIONS.toggleLanguagesMenu;
     document.getElementsByClassName('rpb-documents-btn')[0].onclick = APP.ACTIONS.toggleDocumentMenu;
+    document.getElementsByClassName('rpb-documents-apply-btn')[0].onclick = APP.ACTIONS.applyDocument;
     document.getElementsByClassName('rpb-documents-back-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
   };
 
@@ -221,18 +262,13 @@
     }
     APP.UI.createDOM(config);
     APP.UI.createBindings();
+    APP.UI.createDocumentsForm('documents-container');
 
     APP.API.getAvailableLanguages();
     APP.API.querySpreadsheet(config);
   };
 
-  window.onload = () => {
-    // APP.UI.createBindings();
-    //
-    // APP.initialize();
-  };
-
-  (function(d, script) {
+  (function (d, script) {
     script = d.createElement('script');
     script.type = 'text/javascript';
     script.async = true;
@@ -243,4 +279,5 @@
     script.src = 'http://www.google.com/jsapi';
     d.getElementsByTagName('head')[0].appendChild(script);
   }(document));
+
 })();

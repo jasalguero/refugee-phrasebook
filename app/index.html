@@ -29,39 +29,35 @@
 
     <div class="rpb-container">
       <div class="rpb-main-controls">
-        <input type="button" value="Settings" class="rpb-settings-btn"/>
-        <input type="button" value="Print"/>
-      </div>
-
-      <div class="rpb-settings-menu hidden">
-        Settings
-        <input type="button" value="Back  " class="rpb-setting-back-btn"/>
-        <input type="button" value="Languages" class="rpb-languages-btn"/>
-        <input type="button" value="Documents" class="rpb-documents-btn"/>
+        <input type="button" value="Settings" class="btn rpb-settings-btn"/>
+        <input type="button" value="Languages" class="btn rpb-languages-btn"/>
+        <input type="button" value="Print" class="btn"/>
       </div>
 
       <div class="rpb-language-settings hidden">
-        Languages
+        <div class="section-title">Languages</div>
         <div class="languages-container"></div>
-        <input type="button" value="Back" class="rpb-languages-back-btn"/>
-        <input type="button" value="Apply" class="rpb-languages-apply-btn"/>
+        <input type="button" value="Back" class="btn rpb-languages-back-btn"/>
+        <input type="button" value="Apply" class="btn rpb-languages-apply-btn"/>
+      </div>
+
+      <div class="rpb-settings-menu hidden">
+        <div class="section-title">Settings</div>
+        <input type="button" value="Back  " class="btn rpb-setting-back-btn"/>
+        <input type="button" value="Documents" class="btn rpb-documents-btn"/>
       </div>
 
       <div class="rpb-document-settings hidden">
-        Documents
+        <div class="section-title">Documents</div>
         <div class="documents-container"></div>
-        <input type="button" value="Back" class="rpb-documents-back-btn"/>
-        <input type="button" value="Apply" class="rpb-documents-apply-btn"/>
+        <input type="button" value="Back" class="btn rpb-documents-back-btn"/>
+        <input type="button" value="Apply" class="btn rpb-documents-apply-btn"/>
+      </div>
+
+      <div class="rpb-table">
+
       </div>
     </div>
-
-    <!--<div id="languages">-->
-      <!--<h2>LANGUAGES</h2>-->
-      <!--<span id="langLoading">Loading languages...</span>-->
-      <!--<form id="langForm">-->
-      <!--</form>-->
-    <!--</div>-->
-    <!--<div id="output"></div>-->
 
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
