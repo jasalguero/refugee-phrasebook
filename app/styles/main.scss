@@ -87,8 +87,6 @@ body {
     font-size: 12px;
     margin-bottom: 5px;
 
-
-
     .language-item {
       flex: 0 30%;
     }
@@ -98,6 +96,12 @@ body {
   // PHRASES TABLE
   .rpb-table {
     margin-top: 15px;
+
+    th.google-visualization-table-th {
+      background-color: black;
+      background-image: none;
+      color: white;
+    }
   }
 
   tr.google-visualization-table-tr-over {
@@ -118,5 +122,11 @@ body {
     white-space: nowrap;
     box-sizing: border-box;
     background-color: #EAEAEA;
+  }
+}
+
+@media print {
+  .rpg-settings {
+    visibility: hidden;
   }
 }

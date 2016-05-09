@@ -23,7 +23,8 @@
   // Variables that will hold the HTML elems the app will build and use during the lifecycle
   const ELEMS = {
     CONTAINER: null,
-    TABLE: null
+    TABLE: null,
+    DATA_TABLE: null
   };
 
   // Default configuration
@@ -38,7 +39,8 @@
   var APP = {
     UI: {},
     API: {},
-    ACTIONS: {}
+    ACTIONS: {},
+    PDF: {}
   };
 
   APP.API.getAvailableLanguages = () => {
@@ -73,6 +75,7 @@
 
     if (document === config.target) {
       APP.UI.createLanguagesForm('languages-container', CONSTANTS.LANGUAGES[document]);
+      APP.API.querySpreadsheet(config);
     }
   };
 
@@ -85,21 +88,21 @@
       let langId = languages[langIds[i]].id;
 
       // if (langLabel !== 'English') {
-        let wrapper = document.createElement('div');
-        wrapper.classList.add('language-item');
-        let input = document.createElement('input');
-        let label = document.createElement('span');
+      let wrapper = document.createElement('div');
+      wrapper.classList.add('language-item');
+      let input = document.createElement('input');
+      let label = document.createElement('span');
 
-        input.type = 'checkbox';
-        input.value = langId;
-        if (config.languages.indexOf(langId) !== -1) {
-          input.checked = true;
-        }
-        label.innerHTML = langLabel;
+      input.type = 'checkbox';
+      input.value = langId;
+      if (config.languages.indexOf(langId) !== -1) {
+        input.checked = true;
+      }
+      label.innerHTML = langLabel;
 
-        wrapper.appendChild(input);
-        wrapper.appendChild(label);
-        langForm.appendChild(wrapper);
+      wrapper.appendChild(input);
+      wrapper.appendChild(label);
+      langForm.appendChild(wrapper);
       // }
     }
   };
@@ -165,8 +168,9 @@
   };
 
   APP.UI.drawTable = (dataView) => {
-    var table = new google.visualization.Table(ELEMS.TABLE);
-    table.draw(dataView);
+    ELEMS.DATA_VIEW = dataView;
+    ELEMS.DATA_TABLE = new google.visualization.Table(ELEMS.TABLE);
+    ELEMS.DATA_TABLE.draw(dataView);
   };
 
   /**
@@ -237,13 +241,6 @@
     APP.ACTIONS.hideSettingsMenu();
   };
 
-
-  // APP.UI.createTableElems = () => {
-  //   ELEMS.TABLE = document.createElement('div');
-  //   ELEMS.TABLE.classList.add('rpb-table');
-  //   ELEMS.CONTAINER.appendChild(ELEMS.TABLE);
-  // };
-
   APP.UI.createBindings = () => {
     document.getElementsByClassName('rpb-settings-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
     document.getElementsByClassName('rpb-setting-back-btn')[0].onclick = APP.ACTIONS.hideSettingsMenu;
@@ -253,6 +250,60 @@
     document.getElementsByClassName('rpb-documents-btn')[0].onclick = APP.ACTIONS.toggleDocumentMenu;
     document.getElementsByClassName('rpb-documents-apply-btn')[0].onclick = APP.ACTIONS.applyDocument;
     document.getElementsByClassName('rpb-documents-back-btn')[0].onclick = APP.ACTIONS.showSettingsMenu;
+    document.getElementsByClassName('rpb-print-pdf')[0].onclick = APP.PDF.createPDF;
+  };
+
+
+  APP.PDF.createPDF = () => {
+    let table = document.getElementsByClassName('rpb-table')[0];
+
+
+    html2canvas(table, {
+      onrendered: function (canvas) {
+        var dataUrl = canvas.toDataURL('image/png');
+        let imgWidth, pageHeight, doc;
+
+
+        if (config.languages.length > 3) {
+          imgWidth = 295;
+          pageHeight = 200;
+          doc = new jsPDF('l', 'mm');
+
+        } else {
+          imgWidth = 210;
+          pageHeight = 295;
+          doc = new jsPDF('p', 'mm');
+        }
+
+
+        var imgHeight = canvas.height * imgWidth / canvas.width;
+        var heightLeft = imgHeight;
+
+        var position = 0;
+
+        doc.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight - 50);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          doc.addPage();
+          doc.addImage(dataUrl, 'PNG', 0, position + 1, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        doc.save('sample-file.pdf');
+      }
+    });
+    // var pdf = new jsPDF('p', 'pt', 'a4');
+    //
+    // var options = {
+    //   pagesplit: true,
+    //   w: 400, h: 600
+    // };
+    //
+    // pdf.addHTML(table, 0, 0, options, function () {
+    //   pdf.save('web.pdf');
+    // });
   };
 
   /**
@@ -273,7 +324,6 @@
     APP.UI.createDocumentsForm('documents-container');
 
     APP.API.getAvailableLanguages();
-    APP.API.querySpreadsheet(config);
   };
 
   (function (d, script) {
