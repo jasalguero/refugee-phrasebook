@@ -334,7 +334,7 @@
       // remote script has loaded
       google.load('visualization', '1', {packages: ['corechart', 'table'], callback: APP.initialize});
     };
-    script.src = 'http://www.google.com/jsapi';
+    script.src = 'https://www.google.com/jsapi';
     d.getElementsByTagName('head')[0].appendChild(script);
   }(document));
 
